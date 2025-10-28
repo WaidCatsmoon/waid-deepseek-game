@@ -4,7 +4,6 @@ import random
 
 st.set_page_config(page_title="Вейд: Семья и Счастье", layout="wide")
 
-# === DEEPSEEK ===
 DEEPSEEK_URL = "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-coder-6.7b-instruct"
 HF_TOKEN = st.secrets["HF_TOKEN"]
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -12,7 +11,6 @@ headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 universes = ["волшебный лес", "кибер-город", "драконья пещера", "подземный мир"]
 creatures = ['slime', 'succubus', 'fairy', 'dragon', 'elf', 'ghoul']
 
-# === ИНИЦИАЛИЗАЦИЯ ===
 if 'waid' not in st.session_state:
     st.session_state.waid = {
         'happiness': 100, 'max_happiness': 100,
@@ -30,7 +28,6 @@ if 'chat' not in st.session_state:
 if 'names' not in st.session_state:
     st.session_state.names = {}
 
-# === DEEPSEEK ===
 def call_deepseek(prompt):
     try:
         payload = {"inputs": prompt, "parameters": {"max_new_tokens": 120, "temperature": 0.9}}
@@ -40,7 +37,6 @@ def call_deepseek(prompt):
     except:
         return "…"
 
-# === ИМЯ ===
 def get_name(creature):
     if creature not in st.session_state.names:
         prompt = f"Придумай красивое имя для {creature} в {st.session_state.get('universe', 'мире')}. Только имя."
@@ -48,7 +44,6 @@ def get_name(creature):
         st.session_state.names[creature] = name or creature.capitalize()
     return st.session_state.names[creature]
 
-# === ВРАГ ===
 def spawn_enemy():
     creature = random.choice(creatures)
     name = get_name(creature)
@@ -58,21 +53,18 @@ def spawn_enemy():
         'atk': random.randint(12, 28), 'def': 6
     }
 
-# === УРОН ПО СЧАСТЬЮ ===
 def damage_happiness(amount):
     st.session_state.waid['happiness'] = max(0, st.session_state.waid['happiness'] - amount)
     if st.session_state.waid['happiness'] == 0:
         st.session_state.chat.append({'role': 'system', 'text': "**Ты сломлен... мир поглотил тебя.**"})
         st.session_state.in_battle = False
 
-# === АТАКА ВРАГА ===
 def enemy_attack():
     dmg = random.randint(10, 25)
     st.session_state.chat.append({'role': 'system', 'text': f"**{st.session_state.enemy['name']}** наносит удар..."})
     damage_happiness(dmg)
     st.session_state.chat.append({'role': 'system', 'text': f"**Счастье: -{dmg}** → {st.session_state.waid['happiness']}/100"})
 
-# === СЕМЬЯ ===
 def marry(partner_name):
     st.session_state.waid['spouse'] = partner_name
     st.session_state.waid['happiness'] = min(100, st.session_state.waid['happiness'] + 20)
@@ -88,7 +80,6 @@ def have_child():
     st.session_state.waid['turns_since_child'] = 0
     st.session_state.chat.append({'role': 'system', 'text': f"**Рождается: {child_name}!!}**"})
 
-# === UI ===
 col1, col2 = st.columns([2, 1])
 
 with col1:
@@ -167,7 +158,6 @@ with col1:
 
             st.rerun()
 
-    # Чат
     chat_container = st.container(height=400)
     with chat_container:
         for msg in st.session_state.chat[-15:]:
@@ -180,7 +170,6 @@ with col1:
             else:
                 st.markdown(f"<div style='text-align: center; color: #888; font-style: italic;'>{msg['text']}</div>", unsafe_allow_html=True)
 
-    # Рост детей (только счастье)
     if st.session_state.waid['turns_since_child'] is not None:
         st.session_state.waid['turns_since_child'] += 1
         for child in st.session_state.waid['children']:
@@ -208,7 +197,6 @@ with col2:
         st.progress(member['hp'] / member['max_hp'])
         st.write(f"**{member['name']}** ❤️ {member['hp']}/{member['max_hp']}")
 
-# === СТАРТ ===
 if not st.session_state.get('universe'):
     st.session_state.universe = random.choice(universes)
     st.session_state.current_creature = random.choice(creatures)
